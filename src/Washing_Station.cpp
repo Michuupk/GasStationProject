@@ -15,6 +15,7 @@ Washing_Station::Washing_Station(void* parent) {
     pthread_mutex_init(&wash_mutex, nullptr);
 
     pthread_cond_init(&wash_cond, nullptr);
+    pthread_cond_init(&resupply_cond, nullptr);
 
 
     status = new char[64];
@@ -22,19 +23,33 @@ Washing_Station::Washing_Station(void* parent) {
     detergent_capacity = 1000;
     detergent_content = 1000;
 
+    washing_machine = nullptr;
+
     this->parent = parent;
 
     pthread_create(&this->thread, nullptr,washing_station_thread, this);
-    pthread_create(&this->thread, nullptr,washing_station_cleaning_thread, this);
-    pthread_create(&this->thread, nullptr,washing_station_resupply_thread, this);
+    pthread_create(&this->wash_thread, nullptr,washing_station_cleaning_thread, this);
+    pthread_create(&this->resupply_thread, nullptr,washing_station_resupply_thread, this);
+
+
 }
 
 Washing_Station::~Washing_Station() {
+    is_running = false;
+
+    pthread_join(this->thread, nullptr);
+    pthread_cond_signal(&wash_cond);
+    pthread_join(this->wash_thread, nullptr);
+    pthread_cond_signal(&resupply_cond);
+    pthread_join(this->resupply_thread, nullptr);
+
     pthread_mutex_destroy(&queue_mutex);
     pthread_mutex_destroy(&detergent_mutex);
     pthread_mutex_destroy(&wash_mutex);
 
+
     pthread_cond_destroy(&wash_cond);
+    pthread_cond_destroy(&resupply_cond);
 
     delete[] status;
 }
@@ -44,9 +59,10 @@ void* Washing_Station::washing_station_thread(void* arg) {
     timespec ts = {0, (uint32_t)5e7};
 
 
+    sprintf(washer->status, "Idle");
 
     while (washer->is_running) {
-        if (washer->washing_machine != nullptr) {
+        if (washer->washing_machine == nullptr) {
             pthread_mutex_lock(&washer->queue_mutex);
 
             if (washer->queue.size() > 0) {
@@ -110,7 +126,7 @@ void* Washing_Station::washing_station_cleaning_thread(void* arg) {
                 dirtiness = 0.0;
                 washer->detergent_content -= 2;
                 nanosleep(&sleeptime, nullptr);
-            }else {
+            } else {
                 washer->washing_machine->clean_car(dirtiness);
                 dirtiness -= 0.11;
                 washer->detergent_content -= 3;
@@ -121,7 +137,6 @@ void* Washing_Station::washing_station_cleaning_thread(void* arg) {
         pthread_mutex_lock(&washer->washing_machine->mutex);
         washer->washing_machine->finish_washing();
         pthread_mutex_unlock(&washer->washing_machine->mutex);
-        sprintf(washer->status, "Idle");
 
         washer->washing_machine = nullptr;
     }

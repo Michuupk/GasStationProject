@@ -17,9 +17,11 @@ class Washing_Station {
     pthread_mutex_t queue_mutex, detergent_mutex, wash_mutex;
     pthread_cond_t wash_cond, resupply_cond;
 
+
+
     bool is_running;
     void* parent;
-    pthread_t thread, resupply_thread;
+    pthread_t thread, wash_thread, resupply_thread;
 
     char* status;
 

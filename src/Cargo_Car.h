@@ -22,7 +22,7 @@ class Cargo_Car {
     enum state_t { Idle, Delivering, Loading, Unloading } state;
     Cargo_Car();
     ~Cargo_Car();
-    void* cargo_car_thread(void* arg);
+    static void* cargo_car_thread(void* arg);
 
     char* getStatus() const;
 

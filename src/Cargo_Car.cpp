@@ -6,25 +6,32 @@ double Cargo_Car::capacity = 5e3;
 
 Cargo_Car::Cargo_Car() {
     content = capacity;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    char* status = new char[64];
+    status = new char[64];
+    is_running = true;
+    target = nullptr;
     pthread_mutex_init(&mutex, nullptr);
     pthread_cond_init(&cond, nullptr);
+
+    pthread_create(&thread, nullptr,cargo_car_thread, this);
+
 }
 
 Cargo_Car::~Cargo_Car() {
+
+    pthread_join(thread, nullptr);
+
     pthread_mutex_destroy(&mutex);
     pthread_cond_destroy(&cond);
+
 }
 
 void* Cargo_Car::cargo_car_thread(void* arg) {
     Cargo_Car* cargo_car = (Cargo_Car*)arg;
 
+    sprintf(cargo_car->status, "Idle");
     while (cargo_car->is_running) {
-    sprintf(cargo_car->status, "Cargo Car Idle");
         pthread_mutex_lock(&cargo_car->mutex);
-        while (target == nullptr) {
+        while (cargo_car->target == nullptr) {
             pthread_cond_wait(&cargo_car->cond, &cargo_car->mutex);
         }
         pthread_mutex_unlock(&cargo_car->mutex);
@@ -56,7 +63,7 @@ void* Cargo_Car::cargo_car_thread(void* arg) {
         while (required > 0) {
             sprintf(cargo_car->status, "Resupplying detergent, %4d left", required);
             if (required < 50) {
-                target->fill_detergent(required);
+                cargo_car->target->fill_detergent(required);
                 cargo_car->content -= required;
                 ts.tv_nsec = (uint64_t)required * 1e5;
                 required = 0;
@@ -64,7 +71,7 @@ void* Cargo_Car::cargo_car_thread(void* arg) {
 
                 break;
             }
-            target->fill_detergent(50);
+            cargo_car->target->fill_detergent(50);
             required -= 50;
             nanosleep(&ts, nullptr);
         }

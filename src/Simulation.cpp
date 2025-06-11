@@ -96,10 +96,10 @@ void Simulation::run() {
             printf("WS %6d %20s\n", i, washing_stations[i]->getStatus());
         }
 
-        // printf("%18s| %25s | %7s \n", "CargoCar number","CargoCar Status", "CargoCar Cycles");
-        // for (int i =0;i<Cargo_Car_Count;i++) {
-        //     printf("%10s \n", cargo_cars[i].getStatus());
-        // }
+        printf("%18s| %25s | %7s \n", "CargoCar number","CargoCar Status", "CargoCar Cycles");
+        for (int i =0;i<Cargo_Car_Count;i++) {
+            printf("CargoCar %d %10s \n",i, cargo_cars[i].getStatus());
+        }
 
         nanosleep(&ts, nullptr);
         printf("%*c\r", Tanker_Count + Car_Count + Gas_Station_Count, "\033[A");
