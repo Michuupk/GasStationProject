@@ -9,7 +9,7 @@
 class Simulation {
    public:
 #define Washing_Station_Count 2
-#define Car_Count 2
+#define Car_Count 12
 #define Tanker_Count 4
 #define Gas_Station_Count 5
 #define Cargo_Car_Count 1
