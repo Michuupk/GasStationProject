@@ -122,8 +122,8 @@ void* Car::car_thread(void* arg) {
                     break;
                 }
 
-                car->dirtiness += 0.05;
-                car->fuel_content -= car->fuel_consumption * 7.2;
+                car->dirtiness += 0.02;
+                car->fuel_content -= car->fuel_consumption * 1.2;
                 nanosleep(&ts, nullptr);
             }
         }
